@@ -4,6 +4,9 @@ A tiny Go CLI to print a colorized tree of the current directory, similar to Uni
 
 Author: [@nghiaomg](https://github.com/nghiaomg)
 
+## Demo
+![Showdir demo](https://ik.imagekit.io/0lpnflx37/Background/st/Screenshot%202025-09-02%20162629.png)
+
 ## Features
 - Colorized output per file type and folders
 - Sorted: directories first, then files (alphabetical)
