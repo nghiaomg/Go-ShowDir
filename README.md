@@ -55,6 +55,16 @@ MyProject
 └── README.md
 ```
 
+## Flags
+- `-exclude`: Comma-separated directory names to skip during traversal. Default:
+  `.git,node_modules,vendor,dist,build,.next,.nuxt,.cache,.idea,.vscode,.venv,venv,__pycache__,target,bin,obj,coverage,.terraform,bower_components,.gradle,.m2,.svn,.hg`.
+
+Examples:
+```bash
+showdir -exclude ".git,node_modules,vendor"
+showdir -exclude ".git,.next,dist"
+```
+
 ## Notes
 - Colors rely on ANSI escape sequences. Modern Windows terminals (Windows Terminal, recent PowerShell/CMD on Windows 10+) support them by default.
 - If you do not see colors, ensure you are using Windows Terminal or a recent console, and run a new session after updating PATH.

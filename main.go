@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,6 +24,12 @@ const (
 )
 
 func main() {
+	// flags
+	excludeFlag := flag.String("exclude", ".git,node_modules,vendor,dist,build,.next,.nuxt,.cache,.idea,.vscode,.venv,venv,__pycache__,target,bin,obj,coverage,.terraform,bower_components,.gradle,.m2,.svn,.hg", "Comma-separated directory names to exclude")
+	flag.Parse()
+
+	excludedDirs := buildExcludedSet(*excludeFlag)
+
 	root, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -30,13 +37,13 @@ func main() {
 	}
 
 	fmt.Println(blue + filepath.Base(root) + reset) // thư mục gốc
-	err = printTree(root, "", true)
+	err = printTree(root, "", true, excludedDirs)
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
 }
 
-func printTree(path string, prefix string, isRoot bool) error {
+func printTree(path string, prefix string, isRoot bool, excluded map[string]bool) error {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return err
@@ -53,9 +60,18 @@ func printTree(path string, prefix string, isRoot bool) error {
 		return entries[i].Name() < entries[j].Name()
 	})
 
-	for i, entry := range entries {
+	// filter excluded directories first to keep connectors correct
+	filtered := make([]os.DirEntry, 0, len(entries))
+	for _, e := range entries {
+		if e.IsDir() && excluded[e.Name()] {
+			continue
+		}
+		filtered = append(filtered, e)
+	}
+
+	for i, entry := range filtered {
 		connector := "├── "
-		if i == len(entries)-1 {
+		if i == len(filtered)-1 {
 			connector = "└── "
 		}
 
@@ -66,12 +82,12 @@ func printTree(path string, prefix string, isRoot bool) error {
 
 		if entry.IsDir() {
 			newPrefix := prefix
-			if i == len(entries)-1 {
+			if i == len(filtered)-1 {
 				newPrefix += "    "
 			} else {
 				newPrefix += "│   "
 			}
-			printTree(filepath.Join(path, name), newPrefix, false)
+			printTree(filepath.Join(path, name), newPrefix, false, excluded)
 		}
 	}
 	return nil
@@ -135,4 +151,19 @@ func colorize(name string, isDir bool) string {
 
 	// mặc định
 	return white + name + reset
+}
+
+// buildExcludedSet converts a comma-separated list into a lookup set.
+// Trims whitespace and ignores empty items.
+func buildExcludedSet(csv string) map[string]bool {
+	result := make(map[string]bool)
+	parts := strings.Split(csv, ",")
+	for _, p := range parts {
+		name := strings.TrimSpace(p)
+		if name == "" {
+			continue
+		}
+		result[name] = true
+	}
+	return result
 }
